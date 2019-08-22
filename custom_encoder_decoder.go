@@ -29,6 +29,7 @@ func (ms *MyStruct) EncodeValue(r bsoncodec.EncodeContext, vw bsonrw.ValueWriter
 		fieldValue := val.Field(i).Interface()
 		//fieldType := val.Field(i).Type().Name()
 
+		/* Lowercase the fields according to the default convention */
 		vw2, err := dw.WriteDocumentElement(strings.ToLower(fieldKey))
 		if err != nil { return err }
 
@@ -58,10 +59,11 @@ func (ms *MyStruct) DecodeValue(r bsoncodec.DecodeContext, vr bsonrw.ValueReader
 		/* Check whether there is a corresponding struct member for the BSON field. If none, skip and don't decode */
 		if decoder, ok:= decoderMap[name]; ok {
 			dctx := bsoncodec.DecodeContext{Registry: r.Registry}
+			/* Change the first case to upper to match the (public) struct member convention */
 			name = strings.Title(name)
+
 			/* If the value is NOT NULL */
 			if (vr.ReadNull()!=nil) {
-
 				err = decoder.DecodeValue(dctx, vr, val.FieldByName(name))
 				if err != nil { 
 					log.Println(err) 
@@ -83,6 +85,7 @@ func (ms *MyStruct) DecodeValue(r bsoncodec.DecodeContext, vr bsonrw.ValueReader
 				}
 			}
 		} else {
+			/* Skip decoding values that don't have corresponding struct member */
 			err = vr.Skip()
 			if err != nil { return err }
 			continue
@@ -114,7 +117,7 @@ func main() {
 	if err != nil { log.Fatal(err) }
 
 	/* Test decode normal values */
-    err = collection.FindOne(ctx, bson.D{{"_id", responseOne.InsertedID}}).Decode(&result)
+	err = collection.FindOne(ctx, bson.D{{"_id", responseOne.InsertedID}}).Decode(&result)
 	if err != nil { log.Fatal(err) }
 	log.Println(result)
 
@@ -127,6 +130,6 @@ func main() {
 	err = collection.FindOne(ctx, bson.D{{"_id", responseTwo.InsertedID}}).Decode(&result)
 	if err != nil { log.Fatal(err) }
 	log.Println(result)
-	
+
 	client.Disconnect(ctx)
 }
