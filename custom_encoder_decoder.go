@@ -15,7 +15,7 @@ import (
 
 type MyStruct struct {
 	Word    string 
-    Number  int64
+	Number  int64
 	Flag    bool
 }
 
@@ -24,7 +24,7 @@ func (ms *MyStruct) EncodeValue(r bsoncodec.EncodeContext, vw bsonrw.ValueWriter
 	if err != nil {
 		return err
 	}
-    for i := 0; i < val.NumField(); i++ {
+	for i := 0; i < val.NumField(); i++ {
 		fieldKey := val.Type().Field(i).Name
 		fieldValue := val.Field(i).Interface()
 		//fieldType := val.Field(i).Type().Name()
@@ -36,13 +36,13 @@ func (ms *MyStruct) EncodeValue(r bsoncodec.EncodeContext, vw bsonrw.ValueWriter
 		encoder, err := r.LookupEncoder(reflect.TypeOf(fieldValue))
 		err = encoder.EncodeValue(ectx, vw2, reflect.ValueOf(fieldValue))
 		if err != nil { return err }
-    }
+	}
 	return dw.WriteDocumentEnd()
 }
  
 func (ms *MyStruct) DecodeValue(r bsoncodec.DecodeContext, vr bsonrw.ValueReader, val reflect.Value) error {
 	decoderMap := make(map[string]bsoncodec.ValueDecoder, val.NumField())
-    for i := 0; i < val.NumField(); i++ {
+	for i := 0; i < val.NumField(); i++ {
 		fieldKey := val.Type().Field(i).Name
 		fieldValue := val.Field(i).Interface() 
 		decoder, err := r.LookupDecoder(reflect.TypeOf(fieldValue))
@@ -108,9 +108,9 @@ func main() {
 	collection := client.Database("test").Collection("golang")
 
 	/* Test encode normal values */
-    result := MyStruct{}
-    doc := MyStruct{Word: "foo", Number: int64(42), Flag: true} 
-    responseOne, err := collection.InsertOne(ctx, doc)
+	result := MyStruct{}
+	doc := MyStruct{Word: "foo", Number: int64(42), Flag: true} 
+	responseOne, err := collection.InsertOne(ctx, doc)
 	if err != nil { log.Fatal(err) }
 
 	/* Test decode normal values */
@@ -119,15 +119,14 @@ func main() {
 	log.Println(result)
 
 	/* Insert a NULL value string */
-    result = MyStruct{}
-    responseTwo, err := collection.InsertOne(ctx, bson.M{"word":nil, "number": int64(42)})
+	result = MyStruct{}
+	responseTwo, err := collection.InsertOne(ctx, bson.M{"word":nil, "number": int64(42)})
 	if err != nil { log.Fatal(err) }
 
 	/* Test decode a NULL string value */
-    err = collection.FindOne(ctx, bson.D{{"_id", responseTwo.InsertedID}}).Decode(&result)
+	err = collection.FindOne(ctx, bson.D{{"_id", responseTwo.InsertedID}}).Decode(&result)
 	if err != nil { log.Fatal(err) }
 	log.Println(result)
-
+	
 	client.Disconnect(ctx)
-
 }
